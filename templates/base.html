@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Teste Hackathon{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="container topbar-content">
+            <h1><a href="{{ url_for('index') }}">Teste Hackathon</a></h1>
+
+            <nav class="menu">
+                <a href="{{ url_for('index') }}">Início</a>
+                <a href="{{ url_for('criar') }}">Novo registro</a>
+                <a href="{{ url_for('init_db') }}">Inicializar banco</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for categoria, mensagem in messages %}
+                        <div class="flash {{ categoria }}">{{ mensagem }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

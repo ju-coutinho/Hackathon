@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Registros | Teste Hackathon{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <div>
+            <h2>Lista de registros</h2>
+            <p class="subtitle">Cadastre, filtre, edite e exclua dados.</p>
+        </div>
+        <a class="btn" href="{{ url_for('criar') }}">+ Novo registro</a>
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            <span>Total de registros</span>
+            <strong>{{ total_registros }}</strong>
+        </div>
+        <div class="stat-box">
+            <span>Soma dos valores</span>
+            <strong>R$ {{ "%.2f"|format(total_valor) }}</strong>
+        </div>
+    </div>
+
+    <form method="GET" class="filters">
+        <input
+            type="text"
+            name="busca"
+            placeholder="Buscar por nome"
+            value="{{ busca }}"
+        >
+
+        <select name="categoria">
+            <option value="">Todas as categorias</option>
+            {% for item in categorias %}
+                <option value="{{ item }}" {% if categoria == item %}selected{% endif %}>
+                    {{ item }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="status">
+            <option value="">Todos os status</option>
+            {% for item in status_list %}
+                <option value="{{ item }}" {% if status == item %}selected{% endif %}>
+                    {{ item }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button class="btn" type="submit">Filtrar</button>
+    </form>
+
+    {% if registros %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros %}
+                        <tr>
+                            <td>{{ registro.id }}</td>
+                            <td>{{ registro.nome }}</td>
+                            <td>{{ registro.categoria }}</td>
+                            <td>R$ {{ "%.2f"|format(registro.valor) }}</td>
+                            <td>{{ registro.status }}</td>
+                            <td>{{ registro.data_registro.strftime("%d/%m/%Y") }}</td>
+                            <td class="actions">
+                                <a class="btn secondary" href="{{ url_for('editar', registro_id=registro.id) }}">
+                                    Editar
+                                </a>
+
+                                <form
+                                    action="{{ url_for('excluir', registro_id=registro.id) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Deseja excluir este registro?');"
+                                >
+                                    <button class="btn danger" type="submit">Excluir</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Nenhum registro encontrado.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
