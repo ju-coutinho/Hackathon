@@ -4,6 +4,7 @@ import datetime
 import os
 import barcode
 from barcode.writer import ImageWriter
+import pandas as pd
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -117,7 +118,44 @@ def conferencia(id):
     return render_template('conferencia.html', caixa=caixa)
 
 
+def importar_excel():
+    import pandas as pd
+
+    df = pd.read_excel('dados.xlsx')
+
+    grupos = df.groupby('Vendedor')
+
+    for vendedor, dados in grupos:
+        caixa = Caixa(
+            codigo=f"CX-{vendedor}",
+            vendedor=str(vendedor)
+        )
+
+        db.session.add(caixa)
+        db.session.commit()
+
+        for _, row in dados.iterrows():
+            item = Item(
+                codigo=row['Código do produto'],
+                descricao=row['Descrição do produto'],
+                cor=row['Cor'],
+                tamanho=row['Tamanho'],
+                recebidas=int(row['Peças recebidas']),
+                processadas=int(row['Peças processadas']),
+                divergencia=int(row['Divergência']),
+                caixa_id=caixa.id
+            )
+
+            db.session.add(item)
+
+    db.session.commit()
+
+
 if __name__ == '__main__':
     with app.app_context():
+        ## db.drop_all()
         db.create_all()
+        ## importar_excel()
+        
+
     app.run(debug=True)
