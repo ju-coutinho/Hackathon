@@ -125,7 +125,7 @@ def nova_caixa():
 
         return redirect(url_for("detalhe_caixa", id=caixa.id))
 
-    return render_template("criar_caixa.html")
+    return render_template("nova_caixa.html")
 
 
 @app.route("/caixa/<int:id>")
