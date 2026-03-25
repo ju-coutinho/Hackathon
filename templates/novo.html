@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Novo Registro</h2>
+
+<form method="POST">
+
+    Dia: <input type="text" name="dia"><br><br>
+    Vendedor: <input type="number" name="vendedor"><br><br>
+    Código: <input type="text" name="codigo_produto"><br><br>
+    Descrição: <input type="text" name="descricao"><br><br>
+    Cor: <input type="text" name="cor"><br><br>
+    Tamanho: <input type="text" name="tamanho"><br><br>
+    Peças Recebidas: <input type="number" name="pecas_recebidas"><br><br>
+    Peças Processadas: <input type="number" name="pecas_processadas"><br><br>
+    Divergência: <input type="number" name="divergencia"><br><br>
+
+    <button type="submit">Salvar</button>
+
+</form>
+
+{% endblock %}

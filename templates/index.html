@@ -1,86 +1,15 @@
 {% extends "base.html" %}
-
-{% block title %}Caixas | Teste Hackathon{% endblock %}
-
 {% block content %}
-<section class="card">
-    <div class="card-header">
+
+<div class="card">
+    <h2>Caixas</h2>
+
+    {% for c in caixas %}
         <div>
-            <h2>Caixas cadastradas</h2>
-            <p class="subtitle">Controle de envio, etiquetagem e conferência.</p>
+            <strong>{{ c.codigo }}</strong> - {{ c.vendedor }}
+            <a href="{{ url_for('detalhe_caixa', id=c.id) }}">Ver</a>
         </div>
-        <a class="btn" href="{{ url_for('nova_caixa') }}">+ Nova caixa</a>
-    </div>
+    {% endfor %}
+</div>
 
-    <div class="stats">
-        <div class="stat-box">
-            <span>Total de caixas</span>
-            <strong>{{ total_caixas }}</strong>
-        </div>
-        <div class="stat-box">
-            <span>Total de tipos de item</span>
-            <strong>{{ total_itens }}</strong>
-        </div>
-        <div class="stat-box">
-            <span>Total de unidades</span>
-            <strong>{{ total_unidades }}</strong>
-        </div>
-    </div>
-
-    <form method="GET" class="filters">
-        <input type="text" name="busca" placeholder="Buscar por código da caixa" value="{{ busca }}">
-        <input type="text" name="vendedor" placeholder="Buscar por vendedor" value="{{ vendedor }}">
-
-        <select name="status">
-            <option value="">Todos os status</option>
-            <option value="Aberta" {% if status == "Aberta" %}selected{% endif %}>Aberta</option>
-            <option value="Pendente de envio" {% if status == "Pendente de envio" %}selected{% endif %}>Pendente de envio</option>
-            <option value="Pronta para conferência" {% if status == "Pronta para conferência" %}selected{% endif %}>Pronta para conferência</option>
-            <option value="Conferida OK" {% if status == "Conferida OK" %}selected{% endif %}>Conferida OK</option>
-            <option value="Divergência na conferência" {% if status == "Divergência na conferência" %}selected{% endif %}>Divergência na conferência</option>
-        </select>
-
-        <button class="btn" type="submit">Filtrar</button>
-    </form>
-
-    {% if caixas %}
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Vendedor</th>
-                        <th>Destino</th>
-                        <th>Tipos de item</th>
-                        <th>Unidades</th>
-                        <th>Todos enviados?</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for caixa in caixas %}
-                        <tr>
-                            <td>{{ caixa.codigo_caixa }}</td>
-                            <td>{{ caixa.vendedor }}</td>
-                            <td>{{ caixa.destino }}</td>
-                            <td>{{ caixa.total_tipos }}</td>
-                            <td>{{ caixa.total_unidades }}</td>
-                            <td>{{ "Sim" if caixa.todos_itens_enviados else "Não" }}</td>
-                            <td>{{ caixa.status_caixa }}</td>
-                            <td class="actions">
-                                <a class="btn secondary" href="{{ url_for('detalhe_caixa', caixa_id=caixa.id) }}">Detalhes</a>
-                                <a class="btn" href="{{ url_for('etiqueta_caixa', caixa_id=caixa.id) }}">Etiqueta</a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <div class="empty-state">
-            <p>Nenhuma caixa encontrada.</p>
-        </div>
-    {% endif %}
-</section>
 {% endblock %}

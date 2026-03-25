@@ -1,84 +1,14 @@
 {% extends "base.html" %}
-
-{% block title %}Conferência | Teste Hackathon{% endblock %}
-
 {% block content %}
-<section class="card">
-    <h2>Conferência da caixa {{ caixa.codigo_caixa }}</h2>
-    <p class="subtitle">Compare o esperado com o recebido.</p>
 
-    <div class="stats">
-        <div class="stat-box">
-            <span>Quantidade esperada</span>
-            <strong>{{ caixa.total_unidades }}</strong>
-        </div>
-        <div class="stat-box">
-            <span>Tipos de item</span>
-            <strong>{{ caixa.total_tipos }}</strong>
-        </div>
-        <div class="stat-box">
-            <span>Todos enviados?</span>
-            <strong>{{ "Sim" if caixa.todos_itens_enviados else "Não" }}</strong>
-        </div>
-    </div>
+<div class="card">
+    <h2>Conferência</h2>
 
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Produto</th>
-                    <th>SKU</th>
-                    <th>Qtd</th>
-                    <th>Enviado?</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in caixa.itens %}
-                    <tr>
-                        <td>{{ item.nome_produto }}</td>
-                        <td>{{ item.sku }}</td>
-                        <td>{{ item.quantidade }}</td>
-                        <td>{{ "Sim" if item.enviado else "Não" }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <form method="POST" class="form-grid" style="margin-top: 24px;">
-        <div>
-            <label for="conferido_por">Conferido por</label>
-            <input type="text" id="conferido_por" name="conferido_por" required>
-        </div>
-
-        <div>
-            <label for="quantidade_recebida">Quantidade recebida</label>
-            <input type="number" id="quantidade_recebida" name="quantidade_recebida" required>
-        </div>
-
-        <div class="full-width">
-            <label for="divergencias">Divergências</label>
-            <textarea id="divergencias" name="divergencias" rows="4" placeholder="Ex.: faltaram 2 unidades do SKU 123"></textarea>
-        </div>
-
-        <div class="full-width">
-            <label for="observacoes">Observações</label>
-            <textarea id="observacoes" name="observacoes" rows="4"></textarea>
-        </div>
-
-        <div class="full-width">
-            <button class="btn" type="submit">Salvar conferência</button>
-        </div>
+    <form method="POST">
+        <input name="nome" placeholder="Seu nome">
+        <textarea name="obs" placeholder="Observações"></textarea>
+        <button class="btn">Salvar</button>
     </form>
+</div>
 
-    {% if ultima_conferencia %}
-        <div class="info-box" style="margin-top: 24px;">
-            <strong>Última conferência registrada:</strong>
-            <p>
-                {{ ultima_conferencia.data_conferencia.strftime("%d/%m/%Y %H:%M") }}
-                por {{ ultima_conferencia.conferido_por }}
-            </p>
-        </div>
-    {% endif %}
-</section>
 {% endblock %}

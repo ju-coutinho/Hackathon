@@ -1,48 +1,19 @@
 {% extends "base.html" %}
-
-{% block title %}Novo item | Teste Hackathon{% endblock %}
-
 {% block content %}
-<section class="card form-card">
-    <h2>Novo item da caixa {{ caixa.codigo_caixa }}</h2>
-    <p class="subtitle">Cadastre o produto e marque se ele já foi enviado.</p>
 
-    <form method="POST" class="form-grid">
-        <div>
-            <label for="nome_produto">Nome do produto</label>
-            <input type="text" id="nome_produto" name="nome_produto" required>
-        </div>
+<div class="card">
+    <h2>Novo Item</h2>
 
-        <div>
-            <label for="sku">SKU</label>
-            <input type="text" id="sku" name="sku" required>
-        </div>
-
-        <div>
-            <label for="categoria">Categoria</label>
-            <input type="text" id="categoria" name="categoria" required>
-        </div>
-
-        <div>
-            <label for="quantidade">Quantidade</label>
-            <input type="number" id="quantidade" name="quantidade" required>
-        </div>
-
-        <div class="full-width checkbox-row">
-            <label>
-                <input type="checkbox" name="enviado">
-                Item já enviado
-            </label>
-        </div>
-
-        <div class="full-width">
-            <label for="observacoes">Observações</label>
-            <textarea id="observacoes" name="observacoes" rows="4"></textarea>
-        </div>
-
-        <div class="full-width">
-            <button class="btn" type="submit">Adicionar item</button>
-        </div>
+    <form method="POST">
+        <input name="codigo" placeholder="Código">
+        <input name="descricao" placeholder="Descrição">
+        <input name="cor" placeholder="Cor">
+        <input name="tamanho" placeholder="Tamanho">
+        <input name="recebidas" placeholder="Recebidas">
+        <input name="processadas" placeholder="Processadas">
+        <input name="divergencia" placeholder="Divergência">
+        <button class="btn">Salvar</button>
     </form>
-</section>
+</div>
+
 {% endblock %}

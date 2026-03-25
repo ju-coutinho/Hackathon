@@ -1,21 +1,25 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Sistema Logístico</title>
+    <title>Hackathon</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-    <nav style="background:#333; padding:10px;">
-        <a href="{{ url_for('index') }}" style="color:white; margin-right:15px;">Home</a>
-        <a href="{{ url_for('nova_caixa') }}" style="color:white; margin-right:15px;">Nova caixa</a>
-        <a href="{{ url_for('buscar') }}" style="color:white;">Buscar caixa</a>
-    </nav>
-
-    <div style="padding:20px;">
-        {% block content %}{% endblock %}
+<div class="topbar">
+    <div class="container topbar-content">
+        <h1>Sistema Logístico</h1>
+        <div class="menu">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('nova_caixa') }}">Nova Caixa</a>
+            <a href="{{ url_for('buscar') }}">Buscar</a>
+        </div>
     </div>
+</div>
+
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
 
 </body>
 </html>

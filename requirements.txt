@@ -1,5 +1,4 @@
-Flask==3.0.2
-Flask-SQLAlchemy==3.1.1
-python-dotenv==1.0.1
-python-barcode==0.15.1
-Pillow==10.2.0
+flask
+flask_sqlalchemy
+python-barcode
+pillow
