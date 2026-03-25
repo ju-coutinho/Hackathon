@@ -1,36 +1,21 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Teste Hackathon{% endblock %}</title>
+    <title>Sistema Logístico</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <header class="topbar">
-        <div class="container topbar-content">
-            <h1><a href="{{ url_for('index') }}">Teste Hackathon</a></h1>
 
-            <nav class="menu">
-                <a href="{{ url_for('index') }}">Início</a>
-                <a href="{{ url_for('criar') }}">Novo registro</a>
-                <a href="{{ url_for('init_db') }}">Inicializar banco</a>
-            </nav>
-        </div>
-    </header>
+    <nav style="background:#333; padding:10px;">
+        <a href="{{ url_for('index') }}" style="color:white; margin-right:15px;">Home</a>
+        <a href="{{ url_for('nova_caixa') }}" style="color:white; margin-right:15px;">Nova caixa</a>
+        <a href="{{ url_for('buscar') }}" style="color:white;">Buscar caixa</a>
+    </nav>
 
-    <main class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-container">
-                    {% for categoria, mensagem in messages %}
-                        <div class="flash {{ categoria }}">{{ mensagem }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
+    <div style="padding:20px;">
         {% block content %}{% endblock %}
-    </main>
+    </div>
+
 </body>
 </html>

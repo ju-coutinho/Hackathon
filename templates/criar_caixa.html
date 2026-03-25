@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Nova caixa | Teste Hackathon{% endblock %}
+
+{% block content %}
+<section class="card form-card">
+    <h2>Nova caixa</h2>
+    <p class="subtitle">Crie a caixa antes de adicionar os itens.</p>
+
+    <form method="POST" class="form-grid">
+        <div>
+            <label for="vendedor">Vendedor</label>
+            <input type="text" id="vendedor" name="vendedor" required>
+        </div>
+
+        <div>
+            <label for="destino">Destino</label>
+            <input type="text" id="destino" name="destino" required>
+        </div>
+
+        <div class="full-width">
+            <label for="observacoes">Observações</label>
+            <textarea id="observacoes" name="observacoes" rows="4"></textarea>
+        </div>
+
+        <div class="full-width">
+            <button class="btn" type="submit">Criar caixa</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

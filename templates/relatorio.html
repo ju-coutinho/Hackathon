@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório | Teste Hackathon{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <div>
+            <h2>Relatório de conferência</h2>
+            <p class="subtitle">Caixa {{ caixa.codigo_caixa }}</p>
+        </div>
+        <button class="btn" onclick="window.print()">Imprimir</button>
+    </div>
+
+    {% if conferencia %}
+        <div class="info-box">
+            <p><strong>Vendedor:</strong> {{ caixa.vendedor }}</p>
+            <p><strong>Destino:</strong> {{ caixa.destino }}</p>
+            <p><strong>Conferido por:</strong> {{ conferencia.conferido_por }}</p>
+            <p><strong>Data:</strong> {{ conferencia.data_conferencia.strftime("%d/%m/%Y %H:%M") }}</p>
+            <p><strong>Quantidade esperada:</strong> {{ conferencia.quantidade_esperada }}</p>
+            <p><strong>Quantidade recebida:</strong> {{ conferencia.quantidade_recebida }}</p>
+            <p><strong>Resultado:</strong> {{ "OK" if conferencia.tudo_certo else "Divergência" }}</p>
+        </div>
+
+        <div class="info-box">
+            <strong>Divergências</strong>
+            <p>{{ conferencia.divergencias if conferencia.divergencias else "Nenhuma divergência informada." }}</p>
+        </div>
+
+        <div class="info-box">
+            <strong>Observações</strong>
+            <p>{{ conferencia.observacoes if conferencia.observacoes else "Sem observações." }}</p>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>SKU</th>
+                        <th>Quantidade esperada</th>
+                        <th>Marcado como enviado?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in caixa.itens %}
+                        <tr>
+                            <td>{{ item.nome_produto }}</td>
+                            <td>{{ item.sku }}</td>
+                            <td>{{ item.quantidade }}</td>
+                            <td>{{ "Sim" if item.enviado else "Não" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Nenhuma conferência encontrada para esta caixa.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

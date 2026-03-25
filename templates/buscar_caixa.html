@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Buscar caixa | Teste Hackathon{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h2>Buscar caixa</h2>
+    <p class="subtitle">Digite ou escaneie o código da caixa.</p>
+
+    <form method="POST" class="filters">
+        <input type="text" name="codigo_caixa" placeholder="Ex.: CX-20260324-0001" autofocus required>
+        <button class="btn" type="submit">Buscar</button>
+    </form>
+
+    {% if caixa %}
+        <div class="info-box">
+            <p><strong>Código:</strong> {{ caixa.codigo_caixa }}</p>
+            <p><strong>Vendedor:</strong> {{ caixa.vendedor }}</p>
+            <p><strong>Destino:</strong> {{ caixa.destino }}</p>
+            <p><strong>Status:</strong> {{ caixa.status_caixa }}</p>
+            <p><strong>Tipos de item:</strong> {{ caixa.total_tipos }}</p>
+            <p><strong>Unidades:</strong> {{ caixa.total_unidades }}</p>
+        </div>
+
+        <div class="actions">
+            <a class="btn" href="{{ url_for('detalhe_caixa', caixa_id=caixa.id) }}">Ver detalhes</a>
+            <a class="btn secondary" href="{{ url_for('conferencia', caixa_id=caixa.id) }}">Conferir caixa</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

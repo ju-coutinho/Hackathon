@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Etiqueta do item</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="print-page">
+    <section class="label-card">
+        <h1>Etiqueta do Item</h1>
+        <p><strong>Código:</strong> {{ item.codigo_item }}</p>
+        <p><strong>Produto:</strong> {{ item.nome_produto }}</p>
+        <p><strong>SKU:</strong> {{ item.sku }}</p>
+        <p><strong>Categoria:</strong> {{ item.categoria }}</p>
+        <p><strong>Quantidade:</strong> {{ item.quantidade }}</p>
+        <p><strong>Caixa:</strong> {{ item.caixa.codigo_caixa }}</p>
+
+        {% if item.barcode_arquivo %}
+            <div class="barcode-box">
+                <img src="{{ url_for('static', filename=item.barcode_arquivo) }}" alt="Código de barras do item">
+            </div>
+        {% endif %}
+
+        <button class="btn" onclick="window.print()">Imprimir</button>
+    </section>
+</body>
+</html>

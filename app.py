@@ -1,7 +1,16 @@
 from datetime import datetime
+from pathlib import Path
 import os
+
+from dotenv import load_dotenv
+load_dotenv()
+
+import barcode
+from barcode.writer import ImageWriter
+
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+
 from config import Config
 
 app = Flask(__name__)
@@ -10,177 +19,209 @@ app.config.from_object(Config)
 db = SQLAlchemy(app)
 
 
-class Registro(db.Model):
-    __tablename__ = "registros"
+# ================= MODELOS =================
 
+class Caixa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(150), nullable=False)
-    categoria = db.Column(db.String(100), nullable=False)
-    valor = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(50), nullable=False)
-    data_registro = db.Column(db.Date, nullable=False)
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    codigo_caixa = db.Column(db.String(50), unique=True, nullable=False)
+    vendedor = db.Column(db.String(100), nullable=False)
+    destino = db.Column(db.String(150), nullable=False)
+    status_caixa = db.Column(db.String(50), default="Aberta")
+    barcode_arquivo = db.Column(db.String(255))
+    data_cadastro = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __repr__(self):
-        return f"<Registro {self.id} - {self.nome}>"
+    itens = db.relationship("ItemCaixa", backref="caixa", cascade="all, delete")
+
+
+    @property
+    def total_unidades(self):
+        return sum(i.quantidade for i in self.itens)
+
+    @property
+    def todos_enviados(self):
+        return all(i.enviado for i in self.itens) if self.itens else False
+
+
+class ItemCaixa(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    codigo_item = db.Column(db.String(50), unique=True)
+    nome_produto = db.Column(db.String(150))
+    sku = db.Column(db.String(100))
+    categoria = db.Column(db.String(100))
+    quantidade = db.Column(db.Integer)
+    enviado = db.Column(db.Boolean, default=False)
+    barcode_arquivo = db.Column(db.String(255))
+
+    caixa_id = db.Column(db.Integer, db.ForeignKey("caixa.id"))
+
+
+class Conferencia(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    conferido_por = db.Column(db.String(100))
+    quantidade_esperada = db.Column(db.Integer)
+    quantidade_recebida = db.Column(db.Integer)
+    tudo_certo = db.Column(db.Boolean)
+    divergencias = db.Column(db.Text)
+    data_conferencia = db.Column(db.DateTime, default=datetime.utcnow)
+
+    caixa_id = db.Column(db.Integer, db.ForeignKey("caixa.id"))
+
+
+# ================= FUNÇÕES =================
+
+def gerar_codigo(prefixo):
+    data = datetime.now().strftime("%Y%m%d")
+    return f"{prefixo}-{data}-{int(datetime.now().timestamp())}"
+
+
+def gerar_barcode(codigo):
+    pasta = Path("static/barcodes")
+    pasta.mkdir(parents=True, exist_ok=True)
+
+    caminho = pasta / codigo
+    code = barcode.get("code128", codigo, writer=ImageWriter())
+    path = code.save(str(caminho))
+
+    return path.replace("static/", "").replace("\\", "/")
+
+
+def atualizar_status(caixa):
+    if caixa.todos_enviados:
+        caixa.status_caixa = "Pronta"
+    else:
+        caixa.status_caixa = "Pendente"
 
 
 with app.app_context():
     db.create_all()
 
 
+# ================= ROTAS =================
+
 @app.route("/")
 def index():
-    busca = request.args.get("busca", "").strip()
-    categoria = request.args.get("categoria", "").strip()
-    status = request.args.get("status", "").strip()
-
-    query = Registro.query
-
-    if busca:
-        query = query.filter(Registro.nome.ilike(f"%{busca}%"))
-
-    if categoria:
-        query = query.filter(Registro.categoria == categoria)
-
-    if status:
-        query = query.filter(Registro.status == status)
-
-    registros = query.order_by(Registro.id.desc()).all()
-
-    categorias = (
-        db.session.query(Registro.categoria)
-        .distinct()
-        .order_by(Registro.categoria.asc())
-        .all()
-    )
-    categorias = [item[0] for item in categorias]
-
-    status_list = (
-        db.session.query(Registro.status)
-        .distinct()
-        .order_by(Registro.status.asc())
-        .all()
-    )
-    status_list = [item[0] for item in status_list]
-
-    total_registros = len(registros)
-    total_valor = sum(registro.valor for registro in registros)
-
-    return render_template(
-        "index.html",
-        registros=registros,
-        categorias=categorias,
-        status_list=status_list,
-        busca=busca,
-        categoria=categoria,
-        status=status,
-        total_registros=total_registros,
-        total_valor=total_valor,
-    )
+    caixas = Caixa.query.order_by(Caixa.id.desc()).all()
+    return render_template("index.html", caixas=caixas)
 
 
-@app.route("/criar", methods=["GET", "POST"])
-def criar():
+@app.route("/nova-caixa", methods=["GET", "POST"])
+def nova_caixa():
     if request.method == "POST":
-        nome = request.form.get("nome", "").strip()
-        categoria = request.form.get("categoria", "").strip()
-        valor = request.form.get("valor", "").strip()
-        status = request.form.get("status", "").strip()
-        data_registro = request.form.get("data_registro", "").strip()
+        vendedor = request.form["vendedor"]
+        destino = request.form["destino"]
 
-        if not all([nome, categoria, valor, status, data_registro]):
-            flash("Preencha todos os campos.", "erro")
-            return redirect(url_for("criar"))
+        codigo = gerar_codigo("CX")
+        barcode_path = gerar_barcode(codigo)
 
-        try:
-            valor = float(valor.replace(",", "."))
-        except ValueError:
-            flash("O valor precisa ser numérico.", "erro")
-            return redirect(url_for("criar"))
-
-        try:
-            data_registro = datetime.strptime(data_registro, "%Y-%m-%d").date()
-        except ValueError:
-            flash("Data inválida.", "erro")
-            return redirect(url_for("criar"))
-
-        novo_registro = Registro(
-            nome=nome,
-            categoria=categoria,
-            valor=valor,
-            status=status,
-            data_registro=data_registro,
+        caixa = Caixa(
+            codigo_caixa=codigo,
+            vendedor=vendedor,
+            destino=destino,
+            barcode_arquivo=barcode_path
         )
 
-        db.session.add(novo_registro)
+        db.session.add(caixa)
         db.session.commit()
 
-        flash("Registro criado com sucesso.", "sucesso")
-        return redirect(url_for("index"))
+        return redirect(url_for("detalhe_caixa", id=caixa.id))
 
-    return render_template("create.html")
-
-
-@app.route("/editar/<int:registro_id>", methods=["GET", "POST"])
-def editar(registro_id):
-    registro = Registro.query.get_or_404(registro_id)
-
-    if request.method == "POST":
-        nome = request.form.get("nome", "").strip()
-        categoria = request.form.get("categoria", "").strip()
-        valor = request.form.get("valor", "").strip()
-        status = request.form.get("status", "").strip()
-        data_registro = request.form.get("data_registro", "").strip()
-
-        if not all([nome, categoria, valor, status, data_registro]):
-            flash("Preencha todos os campos.", "erro")
-            return redirect(url_for("editar", registro_id=registro.id))
-
-        try:
-            valor = float(valor.replace(",", "."))
-        except ValueError:
-            flash("O valor precisa ser numérico.", "erro")
-            return redirect(url_for("editar", registro_id=registro.id))
-
-        try:
-            data_registro = datetime.strptime(data_registro, "%Y-%m-%d").date()
-        except ValueError:
-            flash("Data inválida.", "erro")
-            return redirect(url_for("editar", registro_id=registro.id))
-
-        registro.nome = nome
-        registro.categoria = categoria
-        registro.valor = valor
-        registro.status = status
-        registro.data_registro = data_registro
-
-        db.session.commit()
-
-        flash("Registro atualizado com sucesso.", "sucesso")
-        return redirect(url_for("index"))
-
-    return render_template("edit.html", registro=registro)
+    return render_template("criar_caixa.html")
 
 
-@app.route("/excluir/<int:registro_id>", methods=["POST"])
-def excluir(registro_id):
-    registro = Registro.query.get_or_404(registro_id)
+@app.route("/caixa/<int:id>")
+def detalhe_caixa(id):
+    caixa = Caixa.query.get_or_404(id)
+    return render_template("detalhe_caixa.html", caixa=caixa)
 
-    db.session.delete(registro)
+
+@app.route("/caixa/<int:id>/item", methods=["POST"])
+def add_item(id):
+    caixa = Caixa.query.get_or_404(id)
+
+    codigo = gerar_codigo("IT")
+    barcode_path = gerar_barcode(codigo)
+
+    item = ItemCaixa(
+        codigo_item=codigo,
+        nome_produto=request.form["nome"],
+        sku=request.form["sku"],
+        categoria=request.form["categoria"],
+        quantidade=int(request.form["quantidade"]),
+        enviado="enviado" in request.form,
+        barcode_arquivo=barcode_path,
+        caixa_id=caixa.id
+    )
+
+    db.session.add(item)
+    atualizar_status(caixa)
     db.session.commit()
 
-    flash("Registro excluído com sucesso.", "sucesso")
-    return redirect(url_for("index"))
+    return redirect(url_for("detalhe_caixa", id=id))
 
 
-@app.route("/init-db")
-def init_db():
-    with app.app_context():
-        db.create_all()
-    flash("Banco inicializado com sucesso.", "sucesso")
-    return redirect(url_for("index"))
+@app.route("/toggle/<int:id>")
+def toggle(id):
+    item = ItemCaixa.query.get_or_404(id)
+    item.enviado = not item.enviado
+
+    atualizar_status(item.caixa)
+    db.session.commit()
+
+    return redirect(url_for("detalhe_caixa", id=item.caixa_id))
+
+
+@app.route("/buscar", methods=["GET", "POST"])
+def buscar():
+    caixa = None
+    if request.method == "POST":
+        codigo = request.form["codigo"]
+        caixa = Caixa.query.filter_by(codigo_caixa=codigo).first()
+    return render_template("buscar_caixa.html", caixa=caixa)
+
+
+@app.route("/conferir/<int:id>", methods=["GET", "POST"])
+def conferir(id):
+    caixa = Caixa.query.get_or_404(id)
+
+    if request.method == "POST":
+        recebida = int(request.form["recebida"])
+        esperada = caixa.total_unidades
+
+        conf = Conferencia(
+            conferido_por=request.form["nome"],
+            quantidade_esperada=esperada,
+            quantidade_recebida=recebida,
+            tudo_certo=(esperada == recebida),
+            divergencias=request.form["div"],
+            caixa_id=id
+        )
+
+        db.session.add(conf)
+        db.session.commit()
+
+        return redirect(url_for("relatorio", id=id))
+
+    return render_template("conferencia.html", caixa=caixa)
+
+
+@app.route("/relatorio/<int:id>")
+def relatorio(id):
+    caixa = Caixa.query.get_or_404(id)
+    conf = Conferencia.query.filter_by(caixa_id=id).order_by(Conferencia.id.desc()).first()
+    return render_template("relatorio.html", caixa=caixa, conf=conf)
+
+
+@app.route("/etiqueta/caixa/<int:id>")
+def etiqueta_caixa(id):
+    caixa = Caixa.query.get_or_404(id)
+    return render_template("etiqueta_caixa.html", caixa=caixa)
+
+
+@app.route("/etiqueta/item/<int:id>")
+def etiqueta_item(id):
+    item = ItemCaixa.query.get_or_404(id)
+    return render_template("etiqueta_item.html", item=item)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    app.run(debug=True)

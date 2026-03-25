@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhe da caixa | Teste Hackathon{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <div>
+            <h2>{{ caixa.codigo_caixa }}</h2>
+            <p class="subtitle">{{ caixa.vendedor }} • {{ caixa.destino }}</p>
+        </div>
+
+        <div class="actions">
+            <a class="btn" href="{{ url_for('criar_item', caixa_id=caixa.id) }}">+ Novo item</a>
+            <a class="btn secondary" href="{{ url_for('etiqueta_caixa', caixa_id=caixa.id) }}">Etiqueta da caixa</a>
+            <a class="btn secondary" href="{{ url_for('conferencia', caixa_id=caixa.id) }}">Conferir</a>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            <span>Status da caixa</span>
+            <strong>{{ caixa.status_caixa }}</strong>
+        </div>
+        <div class="stat-box">
+            <span>Tipos de item</span>
+            <strong>{{ caixa.total_tipos }}</strong>
+        </div>
+        <div class="stat-box">
+            <span>Unidades totais</span>
+            <strong>{{ caixa.total_unidades }}</strong>
+        </div>
+        <div class="stat-box">
+            <span>Todos enviados?</span>
+            <strong>{{ "Sim" if caixa.todos_itens_enviados else "Não" }}</strong>
+        </div>
+    </div>
+
+    {% if caixa.observacoes %}
+        <div class="info-box">
+            <strong>Observações:</strong>
+            <p>{{ caixa.observacoes }}</p>
+        </div>
+    {% endif %}
+
+    {% if caixa.itens %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Produto</th>
+                        <th>SKU</th>
+                        <th>Categoria</th>
+                        <th>Quantidade</th>
+                        <th>Enviado?</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in caixa.itens %}
+                        <tr>
+                            <td>{{ item.codigo_item }}</td>
+                            <td>{{ item.nome_produto }}</td>
+                            <td>{{ item.sku }}</td>
+                            <td>{{ item.categoria }}</td>
+                            <td>{{ item.quantidade }}</td>
+                            <td>{{ "Sim" if item.enviado else "Não" }}</td>
+                            <td class="actions">
+                                <a class="btn secondary" href="{{ url_for('etiqueta_item', item_id=item.id) }}">Etiqueta</a>
+                                <form action="{{ url_for('toggle_envio_item', item_id=item.id) }}" method="POST">
+                                    <button class="btn" type="submit">
+                                        {% if item.enviado %}Marcar como não enviado{% else %}Marcar como enviado{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% if item.observacoes %}
+                        <tr>
+                            <td colspan="7" class="obs-row">
+                                <strong>Observações do item:</strong> {{ item.observacoes }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Essa caixa ainda não tem itens.</p>
+        </div>
+    {% endif %}
+
+    {% if ultima_conferencia %}
+        <div class="info-box">
+            <strong>Última conferência:</strong>
+            <p>
+                Conferido por {{ ultima_conferencia.conferido_por }} em
+                {{ ultima_conferencia.data_conferencia.strftime("%d/%m/%Y %H:%M") }}.
+                Resultado:
+                <strong>{{ "OK" if ultima_conferencia.tudo_certo else "Com divergência" }}</strong>
+            </p>
+            <a class="btn secondary" href="{{ url_for('relatorio', caixa_id=caixa.id) }}">Ver relatório</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
