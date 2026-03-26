@@ -35,6 +35,9 @@ class Item(db.Model):
 @app.route('/')
 def index():
     busca = request.args.get('busca')
+    cor = request.args.get('cor')
+    tamanho = request.args.get('tamanho')
+    tipo = request.args.get('tipo')
 
     if busca:
         caixas = Caixa.query.filter(
@@ -43,6 +46,20 @@ def index():
         ).all()
     else:
         caixas = Caixa.query.all()
+
+    for caixa in caixas:
+        itens_filtrados = caixa.itens
+
+        if cor:
+            itens_filtrados = [i for i in itens_filtrados if i.cor == cor]
+
+        if tamanho:
+            itens_filtrados = [i for i in itens_filtrados if i.tamanho == tamanho]
+
+        if tipo:
+            itens_filtrados = [i for i in itens_filtrados if tipo.lower() in i.descricao.lower()]
+
+        caixa.itens = itens_filtrados
 
     return render_template('index.html', caixas=caixas)
 
