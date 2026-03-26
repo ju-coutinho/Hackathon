@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 import pandas as pd
+import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -100,7 +101,9 @@ def criar_item(caixa_id):
 
 
 def importar_excel():
-    df = pd.read_excel('dados.xlsx')
+
+    caminho = os.path.join(os.getcwd(), 'dados.xlsx')
+    df = pd.read_excel(caminho)
 
     grupos = df.groupby('Vendedor')
 
