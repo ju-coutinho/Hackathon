@@ -15,102 +15,111 @@
         <button type="submit">🔍 Buscar</button>
     </form>
 
+    <!-- FILTROS -->
     <form method="GET" style="margin: 10px 0; display:flex; gap:10px; flex-wrap:wrap;">
 
-    <select name="cor">
-        <option value="">Cor</option>
-        <option value="azul">Azul</option>
-        <option value="vermelha">Vermelha</option>
-    </select>
+        <select name="cor">
+            <option value="">Cor</option>
+            <option value="azul">Azul</option>
+            <option value="vermelha">Vermelha</option>
+        </select>
 
-    <select name="tamanho">
-        <option value="">Tamanho</option>
-        <option value="P">P</option>
-        <option value="M">M</option>
-    </select>
+        <select name="tamanho">
+            <option value="">Tamanho</option>
+            <option value="P">P</option>
+            <option value="M">M</option>
+        </select>
 
-    <select name="tipo">
-        <option value="">Tipo</option>
-        <option value="polo">Polo</option>
-        <option value="esportiva">Esportiva</option>
-    </select>
+        <select name="tipo">
+            <option value="">Tipo</option>
+            <option value="polo">Polo</option>
+            <option value="esportiva">Esportiva</option>
+        </select>
 
-    <button type="submit">Filtrar</button>
+        <button type="submit">Filtrar</button>
+    </form>
 
-</form>
-
-{% if request.args %}
-    <p><strong>Filtros ativos:</strong>
-        {% for key, value in request.args.items() %}
-            {% if value %}
-                {{ key }} = {{ value }} |
-            {% endif %}
-        {% endfor %}
-    </p>
-{% endif %}
-    
-
-    <!-- BOTÃO -->
-    <div style="margin: 15px 0;">
-        <a href="/nova_caixa">
-            <button>➕ Nova Caixa</button>
-        </a>
-    </div>
+    <!-- FILTROS ATIVOS -->
+    {% if request.args %}
+        <p><strong>Filtros ativos:</strong>
+            {% for key, value in request.args.items() %}
+                {% if value %}
+                    {{ key }} = {{ value }} |
+                {% endif %}
+            {% endfor %}
+        </p>
+    {% endif %}
 
     <!-- LISTA -->
     {% if caixas %}
         {% for caixa in caixas %}
             <div class="caixa">
 
-                <div class="caixa-header">
-                    <h2>{{ caixa.codigo }}</h2>
+                <!-- CABEÇALHO (clicável) -->
+                <div onclick="toggle('{{ caixa.id }}')" style="cursor:pointer;">
+                    <h2>📦 {{ caixa.codigo }} (clique para abrir)</h2>
                     <p><strong>👤 Vendedor:</strong> {{ caixa.vendedor }}</p>
-                    <p><strong>📅 Data:</strong> {{ caixa.data }}</p>
-                    <p><strong>📊 Total de itens:</strong> {{ caixa.itens|length }}</p>
+                    <p><strong>📅 Data:</strong> {{ caixa.data.strftime('%d/%m/%Y %H:%M') }}</p>
                 </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Descrição</th>
-                            <th>Cor</th>
-                            <th>Tamanho</th>
-                            <th>Recebidas</th>
-                            <th>Processadas</th>
-                            <th>Divergência</th>
-                        </tr>
-                    </thead>
+                <!-- CONTEÚDO (gaveta) -->
+                <div id="caixa-{{ caixa.id }}" style="display:none;">
 
-                    <tbody>
-                        {% for item in caixa.itens %}
-                        <tr class="{% if item.divergencia != 0 %}erro{% endif %}">
-                            
-                            <td>{{ item.codigo }}</td>
-                            <td>{{ item.descricao }}</td>
-                            <td>{{ item.cor }}</td>
-                            <td>{{ item.tamanho }}</td>
-                            <td>{{ item.recebidas }}</td>
-                            <td>{{ item.processadas }}</td>
+                    <p><strong>📊 Total de itens:</strong> {{ caixa.itens|length }}</p>
 
-                            <td>
-                                {% if item.divergencia != 0 %}
-                                    ⚠️ {{ item.divergencia }}
-                                {% else %}
-                                    ✔️ OK
-                                {% endif %}
-                            </td>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descrição</th>
+                                <th>Cor</th>
+                                <th>Tamanho</th>
+                                <th>Recebidas</th>
+                                <th>Processadas</th>
+                                <th>Divergência</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in caixa.itens %}
+                            <tr class="{% if item.divergencia != 0 %}erro{% endif %}">
+                                
+                                <td>{{ item.codigo }}</td>
+                                <td>{{ item.descricao }}</td>
+                                <td>{{ item.cor }}</td>
+                                <td>{{ item.tamanho }}</td>
+                                <td>{{ item.recebidas }}</td>
+                                <td>{{ item.processadas }}</td>
+                                <td>
+                                    {% if item.divergencia != 0 %}
+                                        ⚠️ {{ item.divergencia }}
+                                    {% else %}
+                                        ✔️ OK
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
 
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                </div>
 
             </div>
         {% endfor %}
     {% else %}
         <p>⚠️ Nenhuma caixa encontrada.</p>
     {% endif %}
+
+    <!-- SCRIPT DA GAVETA -->
+    <script>
+    function toggle(id) {
+        const el = document.getElementById("caixa-" + id);
+        if (el.style.display === "none") {
+            el.style.display = "block";
+        } else {
+            el.style.display = "none";
+        }
+    }
+    </script>
 
 </body>
 </html>
