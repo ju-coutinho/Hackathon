@@ -38,6 +38,16 @@
     <button type="submit">Filtrar</button>
 
 </form>
+
+    {% if request.args %}
+    <p><strong>Filtros ativos:</strong>
+        {% for key, value in request.args.items() %}
+            {% if value %}
+                {{ key }} = {{ value }} |
+            {% endif %}
+        {% endfor %}
+    </p>
+{% endif %}
     
 
     <!-- BOTÃO -->
