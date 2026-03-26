@@ -62,6 +62,8 @@ def index():
 
         caixa.itens = itens_filtrados
 
+    caixas = [c for c in caixas if len(c.itens) > 0]
+
     return render_template('index.html', caixas=caixas)
 
 
