@@ -39,7 +39,7 @@
 
 </form>
 
-    {% if request.args %}
+{% if request.args %}
     <p><strong>Filtros ativos:</strong>
         {% for key, value in request.args.items() %}
             {% if value %}
